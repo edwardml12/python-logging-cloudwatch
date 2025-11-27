@@ -25,6 +25,16 @@ provider:
 functions:
   api:
     handler: handler.handler
+    layers:
+      - arn:aws:lambda:${opt:region, 'us-east-1'}:267093732750:layer:elastic-apm-extension-ver-1-6-0-x86_64:1
+      - arn:aws:lambda:${opt:region, 'us-east-1'}:267093732750:layer:elastic-apm-python-ver-1-0-0-x86_64:1
+    environment:
+      ELASTIC_APM_SERVICE_NAME: my-fastapi-lambda
+      ELASTIC_APM_ENVIRONMENT: production
+      ELASTIC_APM_LAMBDA_APM_SERVER: http://localhost:8200
+      ELASTIC_APM_SECRET_TOKEN: ""
+      ELASTIC_APM_CAPTURE_BODY: errors
+      ELASTIC_APM_LOG_LEVEL: warning
     description: "FastAPI running on AWS Lambda via Mangum"
     events:
       - httpApi:

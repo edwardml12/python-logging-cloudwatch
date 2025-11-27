@@ -3,3 +3,4 @@ mangum
 uvicorn
 pydantic
 pydantic-core
+elastic-apm[starlette]
