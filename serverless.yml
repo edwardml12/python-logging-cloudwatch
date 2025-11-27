@@ -1,0 +1,56 @@
+service: fastapi-python-service
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: python3.10
+  region: sa-east-1
+  stage: dev
+  memorySize: 512
+  timeout: 15
+  architecture: x86_64
+  environment:
+    STAGE: ${sls:stage}
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: arn:aws:logs:*:*:*
+
+functions:
+  api:
+    handler: handler.handler
+    description: "FastAPI running on AWS Lambda via Mangum"
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: ANY
+
+plugins:
+  - serverless-python-requirements
+  - serverless-offline
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    slim: true
+    layer: false
+    layerName: requirements
+  serverless-offline:
+    port: 3000
+    prefix:
+    corsAllowOrigin: '*'
+
+package:
+  individually: true
+  patterns:
+    - "!**/*"
+    - "app.py"
+    - "handler.py"
+    - "requirements.txt"
+    - "services/**"
