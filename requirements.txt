@@ -4,3 +4,5 @@ uvicorn
 pydantic
 pydantic-core
 elastic-apm[starlette]
+mysql-connector-python
+python-dotenv

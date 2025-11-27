@@ -9,10 +9,54 @@ from elasticapm.contrib.starlette import make_apm_client, ElasticAPM
 apm = make_apm_client()
 app.add_middleware(ElasticAPM, client=apm)
 
+import mysql.connector
+from mysql.connector import Error
+
+import os
+from dotenv import load_dotenv
+import json
+
+load_dotenv()
+
+
 @app.get("/health")
 def health_check():
     logger.debug("Health check endpoint called.")
     return {"status": "ok"}
+
+
+@app.get("/mysqltest")
+def mysql_test():
+    try:
+        connection = mysql.connector.connect(
+            host=os.getenv("MYSQL_URL"),
+            user=os.getenv("MYSQL_USER"),
+            password=os.getenv("MYSQL_PASSWORD"),
+            database=os.getenv("MYSQL_NAME"),
+            port=int(os.getenv("MYSQL_PORT", 3306)),
+        )
+
+        # print(connection.is_connected())
+
+        if connection.is_connected():
+            cursor = connection.cursor()
+            cursor.execute("SELECT * FROM test")
+
+            rows = cursor.fetchall()
+
+            rows_list = [list(row) for row in rows]
+            print("Rows:", rows)
+            return json.dumps(rows_list)
+
+    except Error as e:
+        print(f"MySQL error: {e}")
+        return None
+
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
 
 @app.get("/items")
 def create_item():
