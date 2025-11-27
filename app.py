@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from services.item import Item
 from services.logger import logger
+import logging
 
 app = FastAPI(title="FastAPI on Lambda")
 
@@ -17,7 +18,14 @@ from dotenv import load_dotenv
 import json
 
 load_dotenv()
+import elasticapm
+from elasticapm.handlers.logging import LoggingHandler
 
+apm_client = elasticapm.get_client()
+apm_handler = LoggingHandler(client=apm_client)
+apm_handler.setLevel(logging.WARNING)  # only ERROR+ go to APM
+
+logger.addHandler(apm_handler)
 
 @app.get("/health")
 def health_check():
@@ -72,7 +80,7 @@ def function_with_raise():
     try:
         raise ValueError("An intentional error occurred.")
     except Exception as e:
-        logger.error(f"Error inaa all_items: {e}", exc_info=True)
+        logger.error(f"Error in function_with_raise: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
@@ -81,5 +89,5 @@ def function_with_error():
     try:
         call_function_not_implemented()
     except Exception as e:
-        logger.error(f"Error inaa all_items: {e}", exc_info=True)
+        logger.error(f"Error in function_with_error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")
